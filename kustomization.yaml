@@ -1,0 +1,29 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+bases:
+  - https://github.com/kubevirt/common-templates/releases/download/v0.25.0/common-templates.yaml
+
+#namePrefix: dev-
+
+patches:
+  #
+  # Delete all templates except for RHEL
+  #
+  - patch: |-
+      apiVersion: template.openshift.io/v1
+      kind: Template
+      metadata:
+        name: ignore
+      $patch: delete
+    target:
+      name: "(ubuntu|centos|fedora|rhel6|rhel7|rhel8|opensuse|windows).*"
+  #
+  # Any large now gets two sockets
+  #
+  - patch: |-
+      - op: replace
+        path: /objects/0/spec/template/spec/domain/cpu/sockets
+        value: 2
+    target:
+      name: .*-large
